@@ -1,21 +1,20 @@
 package app.rssexample;
 
-import android.graphics.PorterDuff;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import app.rssexample.AdapterListNews.OnItemClickedInterface;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,9 +25,13 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements OnItemClickedInterface {
 
     private static final String TAG = "MainActivity";
+
+    private static final String WEB_TITLE = "title";
+    private static final String WEB_IMAGE_URL = "image";
+    private static final String WEB_ARTICLE_URL = "article url";
 
     private RSSFeed rssFeed = null;
 
@@ -54,6 +57,23 @@ public class MainActivity extends AppCompatActivity {
         mProgressBar = findViewById(R.id.loadingProgressBar);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getRssItems();
+    }
+
+    @Override
+    public void onClick(final int position) {
+        Intent intent = new Intent(MainActivity.this,WebViewActivity.class);
+
+        intent.putExtra(WEB_TITLE,postsList.get(position).getTitle());
+        intent.putExtra(WEB_IMAGE_URL,postsList.get(position).getThumburl());
+        intent.putExtra(WEB_ARTICLE_URL,postsList.get(position).getLink());
+        startActivity(intent);
 
     }
 
@@ -131,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
                 postsList.addAll(rssFeed.getList());
 
                 //Once the task has finished, load our recycler view
-                listAdapter = new AdapterListNews(MainActivity.this, postsList); mRecyclerView.setAdapter(listAdapter);
+                listAdapter = new AdapterListNews(MainActivity.this, postsList,MainActivity.this); mRecyclerView.setAdapter(listAdapter);
 
                 Toast.makeText(MainActivity.this, "Success!", Toast.LENGTH_SHORT).show();
             }
@@ -152,6 +172,8 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_refresh) {
             getRssItems();
+        }else if (item.getItemId() == R.id.action_favourites){
+            startActivity(new Intent(MainActivity.this,FavouritesActvity.class));
         }
         return super.onOptionsItemSelected(item);
     }
